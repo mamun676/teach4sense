@@ -50,39 +50,51 @@
       </button>
     </nav>
 
-    <button id="themeToggle" class="mt-auto nav-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <span>Theme</span>
-    </button>
+    <div class="mt-auto flex flex-col gap-2">
+      <span class="gemini-badge justify-center">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" fill="#4285F4"/></svg>
+        Powered by <span class="g">Google Gemini</span>
+      </span>
+      <button id="themeToggle" class="nav-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span>Theme</span>
+      </button>
+    </div>
   </aside>
 
   <!-- MAIN -->
   <main class="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
 
-    <header class="mb-8">
-      <h1 id="pageTitle" class="text-2xl md:text-3xl font-extrabold">Simulate a Class</h1>
-      <p id="pageSub" class="text-slate-400 mt-1">Apna lecture do — 5 AI students padhenge aur asli feedback denge.</p>
+    <header class="mb-8 flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h1 id="pageTitle" class="text-2xl md:text-3xl font-extrabold">Simulate a Class</h1>
+        <p id="pageSub" class="text-slate-400 mt-1">Paste your lecture — 5 AI students will learn from it and give you real feedback.</p>
+      </div>
+      <span class="gemini-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" fill="#4285F4"/></svg>
+        Powered by <span class="g">Google Gemini</span>
+      </span>
     </header>
 
     <!-- ============ SIMULATE ============ -->
     <section id="view-simulate">
       <div id="keyNotice" class="hidden mb-4 flex items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/40 p-3 text-sm">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
-        <span>Gemini API key nahi mili. <button data-view="settings" class="underline font-semibold">Settings me daalo →</button></span>
+        <span>No Gemini API key found. <button data-view="settings" class="underline font-semibold">Add it in Settings →</button></span>
       </div>
 
       <div class="card p-6">
-        <label class="lbl">Topic (aap kya padha rahe ho)</label>
+        <label class="lbl">Topic (what are you teaching?)</label>
         <input id="topic" class="inp mb-4" placeholder="e.g. Photosynthesis, Newton's Laws, Fractions..." />
 
         <label class="lbl flex items-center justify-between">
-          <span>Lecture (likho ya 🎤 se bolo)</span>
-          <button id="micBtn" class="mic" title="Bol kar likho">
+          <span>Lecture (type it, or use voice)</span>
+          <button id="micBtn" class="mic" title="Speak to type">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4"/></svg>
             <span id="micLabel">Voice</span>
           </button>
         </label>
-        <textarea id="lecture" rows="7" class="inp" placeholder="Yahan apna poora lecture likho... jaise aap class me bolte ho."></textarea>
+        <textarea id="lecture" rows="7" class="inp" placeholder="Write your full lecture here... just like you'd explain it in class."></textarea>
 
         <div class="flex flex-wrap items-center gap-3 mt-4">
           <button id="runBtn" class="btn-primary">
@@ -91,8 +103,12 @@
           </button>
           <button id="askOpenBtn" class="btn-ghost">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
-            Ask AI (koi doubt?)
+            Ask AI (have a doubt?)
           </button>
+          <span class="gemini-badge ml-auto">
+            <svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" fill="#4285F4"/></svg>
+            Powered by <span class="g">Gemini</span>
+          </span>
         </div>
       </div>
 
@@ -140,30 +156,30 @@
           <input id="keyInput" type="password" class="inp" placeholder="AIza..." />
           <button id="saveKey" class="btn-primary shrink-0">Save</button>
         </div>
-        <p id="keyStatus" class="text-sm mt-2 text-slate-400">Key aapke browser me hi save hoti hai (localStorage). Kahin bhejein nahi jaati.</p>
+        <p id="keyStatus" class="text-sm mt-2 text-slate-400">Your key is stored only in your browser (localStorage). It is never sent anywhere else.</p>
 
         <details class="mt-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-4">
           <summary class="cursor-pointer font-semibold text-indigo-600 dark:text-indigo-400">🔎 Find your Gemini key — step by step</summary>
           <ol class="list-decimal ml-5 mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-            <li>Is link ko kholo: <a href="https://aistudio.google.com/apikey" target="_blank" class="text-indigo-500 underline">aistudio.google.com/apikey</a></li>
-            <li>Apne Google account se <b>Sign in</b> karo.</li>
-            <li>Blue button <b>“Create API key”</b> pe click karo.</li>
-            <li>Agar puche to “Create in new project” select karo.</li>
-            <li>Key ban jayegi — uske aage <b>Copy</b> icon dabao.</li>
-            <li>Wapas yahan aake upar wale box me <b>paste</b> karke <b>Save</b> dabao. Ho gaya! ✅</li>
+            <li>Open this link: <a href="https://aistudio.google.com/apikey" target="_blank" class="text-indigo-500 underline">aistudio.google.com/apikey</a></li>
+            <li>Sign in with your Google account.</li>
+            <li>Click the blue <b>“Create API key”</b> button.</li>
+            <li>If asked, choose <b>“Create API key in new project”</b>.</li>
+            <li>Your key appears — click the <b>Copy</b> icon next to it.</li>
+            <li>Come back here, <b>paste</b> it in the box above, and click <b>Save</b>. Done! ✅</li>
           </ol>
         </details>
       </div>
 
       <div class="card p-6 mt-4">
         <p class="font-semibold mb-1">Danger zone</p>
-        <p class="text-sm text-slate-400 mb-3">Saara history hata do (wapas nahi aayega).</p>
+        <p class="text-sm text-slate-400 mb-3">Delete all your saved history (cannot be undone).</p>
         <button id="clearHist" class="btn-danger">Clear all history</button>
       </div>
 
       <div class="card p-6 mt-4">
         <p class="font-semibold mb-2">Database</p>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Abhi sab kuch aapke browser me save hota hai (localStorage) — hackathon demo ke liye perfect. Baad me multi-device + login ke liye <b>Supabase</b> (free & easy) recommend karta hoon. <span class="soon ml-1">☁️ Cloud sync — coming soon</span></p>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Right now everything is saved in your browser (localStorage) — perfect for a hackathon demo. For multi-device sync and login later, I recommend <b>Supabase</b> (free & easy). <span class="soon ml-1">☁️ Cloud sync — coming soon</span></p>
       </div>
     </section>
   </main>
@@ -181,10 +197,16 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
-    <p class="text-sm text-slate-400 mb-2">Koi concept samajh nahi aaya? AI se simple explanation lo aur wahin se seekh lo.</p>
-    <textarea id="askInput" rows="3" class="inp" placeholder="e.g. Photosynthesis me light reaction kya hota hai simple me?"></textarea>
+    <p class="text-sm text-slate-400 mb-2">Didn't understand a concept? Get a simple explanation from AI and learn it right here.</p>
+    <textarea id="askInput" rows="3" class="inp" placeholder="e.g. Explain the light reaction in photosynthesis in simple words"></textarea>
     <button id="askBtn" class="btn-primary mt-3">Explain simply</button>
     <div id="askAnswer" class="mt-4 text-sm leading-relaxed max-h-72 overflow-auto"></div>
+    <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+      <span class="gemini-badge">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" fill="#4285F4"/></svg>
+        Powered by <span class="g">Google Gemini</span>
+      </span>
+    </div>
   </div>
 </div>
 
