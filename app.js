@@ -1,5 +1,5 @@
 /* ============ CONFIG ============ */
-const MODEL = "gemini-2.5-flash"; // agar quota error aaye to "gemini-flash-latest" kar dena
+const MODEL = "gemini-2.5-flash"; // if quota error appears, change to "gemini-flash-latest"
 const K_KEY = "t4s_key", K_THEME = "t4s_theme", K_HIST = "t4s_hist";
 const COLORS = { Rahul:"#ef4444", Aisha:"#22c55e", Arjun:"#3b82f6", Meera:"#a855f7", Kabir:"#f59e0b" };
 
@@ -13,7 +13,7 @@ const esc = (s = "") => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 const getKey = () => localStorage.getItem(K_KEY) || "";
 const clean = (t) => t.replace(/```json/gi,"").replace(/```/g,"").trim();
 const mdLite = (t) => esc(t).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/\n\s*[-*]\s+/g,"<br>• ").replace(/\n/g,"<br>");
-const thinkDots = () => `<span class="dots"><span></span><span></span><span></span></span>`;
+const thinkDots = () => `<span class="dots"><span></span><span></span><span></span><span></span></span>`;
 
 function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.remove("hidden");
@@ -23,10 +23,11 @@ function toast(msg){
 /* ============ GEMINI ============ */
 async function gemini(prompt, wantJson){
   const key = getKey();
-  if(!key) throw new Error("API key nahi mili. Settings me apni Gemini key daalo.");
+  if(!key) throw new Error("No API key found. Add your Gemini key in Settings.");
   const body = { contents:[{ parts:[{ text: prompt }] }] };
   if(wantJson) body.generationConfig = { responseMimeType:"application/json" };
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`, {
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent?key=" + key;
+  const res = await fetch(url, {
     method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body),
   });
   const data = await res.json();
@@ -34,7 +35,7 @@ async function gemini(prompt, wantJson){
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   if(!wantJson) return text;
   try { return JSON.parse(clean(text)); }
-  catch(e){ throw new Error("AI ka jawab JSON me nahi tha. Dubara try karo."); }
+  catch(e){ throw new Error("AI's reply was not valid JSON. Please try again."); }
 }
 
 /* ============ PROMPTS ============ */
@@ -88,11 +89,13 @@ const askPrompt = (topic, q) => `You are a friendly teaching assistant. Explain 
 async function runSimulation(){
   const topic = $("#topic").value.trim();
   const lecture = $("#lecture").value.trim();
-  if(!getKey()){ switchView("settings"); toast("Pehle Gemini key daalo"); return; }
-  if(!lecture){ toast("Pehle lecture likho ya bolo 🎤"); return; }
+  if(!getKey()){ switchView("settings"); toast("Add your Gemini key first"); return; }
+  if(!lecture){ toast("Write or speak your lecture first"); return; }
   currentTopic = topic;
   showLoading(true);
   $("#results").classList.add("hidden");
+  // scroll down so the teacher sees the students "reading"
+  $("#loading").scrollIntoView({ behavior:"smooth", block:"start" });
   try {
     const s = await gemini(studentPrompt(topic, lecture), true);
     const students = s.students || [];
@@ -118,8 +121,8 @@ function showLoading(on){
   l.classList.remove("hidden");
   l.innerHTML = `
     <div class="flex items-center gap-2 mb-4 text-slate-500">
-      <span class="dots"><span></span><span></span><span></span></span>
-      <span>AI students aapka lecture padh rahe hain...</span>
+      <span class="dots"><span></span><span></span><span></span><span></span></span>
+      <span>AI students are reading your lecture...</span>
     </div>
     <div class="card p-6 space-y-3 mb-4"><div class="sk h-6 w-1/3"></div><div class="sk h-4 w-full"></div><div class="sk h-4 w-5/6"></div></div>
     <div class="grid md:grid-cols-2 gap-4">
@@ -187,8 +190,8 @@ function resultsHTML(run){
             </div>
             <span class="font-extrabold" style="color:${color}">${p}%</span>
           </div>
-          <p class="text-sm mb-2"><span class="text-slate-400">Samajh:</span> ${esc(st.summary_in_own_words||"")}</p>
-          ${st.question_to_teacher ? `<p class="text-sm mb-2"><span class="text-slate-400">Sawal:</span> ${esc(st.question_to_teacher)}</p>` : ""}
+          <p class="text-sm mb-2"><span class="text-slate-400">Understood:</span> ${esc(st.summary_in_own_words||"")}</p>
+          ${st.question_to_teacher ? `<p class="text-sm mb-2"><span class="text-slate-400">Question:</span> ${esc(st.question_to_teacher)}</p>` : ""}
           ${fb.most_asked ? `<p class="text-sm mb-2"><span class="text-slate-400">Most asked:</span> ${esc(fb.most_asked)}</p>` : ""}
           ${st.needed_but_missing ? `<p class="text-sm text-amber-600 dark:text-amber-400">Missing: ${esc(st.needed_but_missing)}</p>` : ""}
         </div>`;
@@ -211,7 +214,7 @@ function analysisHTML(cats){
   };
   return `<div class="card p-6 fade-in">
     <h2 class="font-bold text-lg mb-1">🎯 All Student Questions — 3 Levels</h2>
-    <p class="text-sm text-slate-400 mb-4">Har sawal ka jawab lo, ya AI se samjho.</p>
+    <p class="text-sm text-slate-400 mb-4">Answer each question, or learn it from AI.</p>
     ${block("LEVEL 1 · Basic","lvl1",cats.level1)}
     ${block("LEVEL 2 · Conceptual","lvl2",cats.level2)}
     ${block("LEVEL 3 · Critical","lvl3",cats.level3)}
@@ -249,7 +252,7 @@ function openAsk(prefill){
 function closeAsk(){ $("#askModal").classList.add("hidden"); }
 async function runAsk(){
   const q = $("#askInput").value.trim();
-  if(!q){ toast("Pehle sawal likho"); return; }
+  if(!q){ toast("Write a question first"); return; }
   $("#askAnswer").innerHTML = thinkDots();
   try { $("#askAnswer").innerHTML = mdLite(await gemini(askPrompt(currentTopic, q), false)); }
   catch(e){ $("#askAnswer").innerHTML = "⚠️ " + e.message; }
@@ -273,7 +276,7 @@ function renderDashboard(){
   $("#statBest").textContent = h.length ? Math.max(...scores) : "–";
   $("#recentList").innerHTML = h.length
     ? h.slice(0,6).map((r,i)=>recentCard(r,i)).join("")
-    : `<p class="text-slate-400 text-sm">Abhi koi class nahi. Simulate se shuru karo.</p>`;
+    : `<p class="text-slate-400 text-sm">No classes yet. Start from Simulate.</p>`;
 }
 function recentCard(r, i){
   const sc = r.report?.overall_teaching_score || 0;
@@ -293,7 +296,7 @@ function renderReports(){
   $("#reportsList").classList.remove("hidden");
   $("#reportsList").innerHTML = h.length
     ? h.map((r,i)=>recentCard(r,i)).join("")
-    : `<p class="text-slate-400 text-sm">Abhi koi report nahi.</p>`;
+    : `<p class="text-slate-400 text-sm">No reports yet.</p>`;
 }
 function openReport(i){
   const r = hist()[i]; if(!r) return;
@@ -320,7 +323,7 @@ function setupVoice(){
     ta.value = (ta.value + " " + txt).trim();
   };
   recog.onend = () => { recording = false; $("#micBtn").classList.remove("rec"); $("#micLabel").textContent = "Voice"; };
-  recog.onerror = () => toast("Voice error — mic allow karo aur Live Server use karo");
+  recog.onerror = () => toast("Voice error — allow the mic and use Live Server");
 }
 function toggleVoice(){
   if(!recog) return;
@@ -331,10 +334,10 @@ function toggleVoice(){
 
 /* ============ NAV / THEME ============ */
 const TITLES = {
-  simulate:["Simulate a Class","Apna lecture do — 5 AI students padhenge aur asli feedback denge."],
-  dashboard:["Dashboard","Aapki teaching ka overview."],
-  reports:["Reports","Purani saari classes ki detailed reports."],
-  settings:["Settings","API key, database aur baaki cheezein."],
+  simulate:["Simulate a Class","Paste your lecture — 5 AI students will learn from it and give you real feedback."],
+  dashboard:["Dashboard","An overview of your teaching."],
+  reports:["Reports","Detailed reports of all your past classes."],
+  settings:["Settings","API key, database and more."],
 };
 function switchView(v){
   $$("[id^='view-']").forEach(s => s.classList.add("hidden"));
@@ -353,38 +356,32 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(localStorage.getItem(K_THEME) || "light");
   setupVoice();
 
-  // key notice
   if(!getKey()) $("#keyNotice").classList.remove("hidden");
   $("#keyInput").value = getKey();
 
-  // nav
   $$("[data-view]").forEach(b => b.addEventListener("click", () => switchView(b.dataset.view)));
-  // theme
   $("#themeToggle").addEventListener("click", () => {
     const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
     localStorage.setItem(K_THEME, next); applyTheme(next);
   });
-  // main buttons
   $("#runBtn").addEventListener("click", runSimulation);
   $("#micBtn").addEventListener("click", toggleVoice);
   $("#askOpenBtn").addEventListener("click", () => openAsk());
   $("#askClose").addEventListener("click", closeAsk);
   $("#askBtn").addEventListener("click", runAsk);
   $("#askModal").addEventListener("click", (e) => { if(e.target.id === "askModal") closeAsk(); });
-  // settings
   $("#saveKey").addEventListener("click", () => {
     const v = $("#keyInput").value.trim();
-    if(!v){ toast("Key khaali hai"); return; }
+    if(!v){ toast("Key is empty"); return; }
     localStorage.setItem(K_KEY, v);
     $("#keyNotice").classList.add("hidden");
-    $("#keyStatus").textContent = "✅ Key saved! Ab Simulate pe jaao.";
-    toast("Key save ho gayi ✅");
+    $("#keyStatus").textContent = "✅ Key saved! Now go to Simulate.";
+    toast("Key saved ✅");
   });
   $("#clearHist").addEventListener("click", () => {
-    if(confirm("Saara history hata dein?")){ localStorage.removeItem(K_HIST); renderDashboard(); renderReports(); toast("History clear"); }
+    if(confirm("Delete all history?")){ localStorage.removeItem(K_HIST); renderDashboard(); renderReports(); toast("History cleared"); }
   });
 
-  // delegated: answer / ask-this / open-report
   document.addEventListener("click", (e) => {
     const ans = e.target.closest("[data-answer]");
     if(ans){ answerQuestion(ans); return; }
